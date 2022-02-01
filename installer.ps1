@@ -162,18 +162,19 @@ else {
 
 #office installation paths
 $mainPath = @("\\172.25.10.6\iso\Iso Microsoft")
-$officePath = @("Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe","Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe","Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe")
-$type
+$officePath = @('Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe','Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe','Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe')
 $count = 0
-$officeToInstall
-Foreach ($type in $officePath) {
+$officeToInstall = ""
+
+Foreach ($i in $officePath) {
     if ($count -eq $officeType) {
-        $officeToInstall = $type
+        $officeToInstall = $i
     }
     else {
         $count++
     }
 }
+
 start-process -FilePath "$mainPath\$officeToInstall"
 
 #windows update (autoreboot may not work, damn it)
