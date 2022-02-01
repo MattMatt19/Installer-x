@@ -12,10 +12,14 @@ if([System.Environment]::OSVersion.Version.Build -lt 18363) {"ATTENZIONE: Per us
 Write-Output "Installazione automatizzata sistema M2"
 
 #net temporary mapping
+
+$device = "ReadyNAS 104 [NASGETGEAR]"
+$rootPath = "\\172.25.10.6\iso\Iso Microsoft"
+
 try { 
-    New-PSDrive -Name "ReadyNAS 104 [NASGETGEAR]" -PSProvider "FileSystem" -Root "\\172.25.10.6\iso\Iso Microsoft"
+    New-PSDrive -Name $device -PSProvider "FileSystem" -Root $rootPath
 } catch {
-    "rete già mappata"
+    "$device già mappato"
 }
 
 #winget packages (still don't know how to check if they are already installed #damnit)
