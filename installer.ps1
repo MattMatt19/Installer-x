@@ -15,7 +15,7 @@ Write-Output "Installazione automatizzata sistema M2"
 try { 
     New-PSDrive -Name "ReadyNAS 104 [NASGETGEAR]" -PSProvider "FileSystem" -Root "\\172.25.10.6\iso\Iso Microsoft"
 } catch {
-    "rete giÃ  mappata"
+    "rete già mappata"
 }
 
 #winget packages (still don't know how to check if they are already installed #damnit)
@@ -27,14 +27,38 @@ $version=$psobj.tag_name
 Invoke-WebRequest -Uri "https://github.com/microsoft/winget-cli/releases/download/$version/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -OutFile $output -UseBasicParsing
 $env:PROCESSOR_ARCHITECTURE
 
+#variables for checking if package are already downloaded
+$path64 = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
+$path86 = "Microsoft.VCLibs.x86.14.00.Desktop.appx"
+
 if ([Environment]::Is64BitOperatingSystem) {
-    Invoke-WebRequest -Uri "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx" -OutFile $output2 -UseBasicParsing
+    Invoke-WebRequest -Uri "https://aka.ms/$path64" -OutFile $output2 -UseBasicParsing
 }
 else {
-    Invoke-WebRequest -Uri "https://aka.ms/Microsoft.VCLibs.x86.14.00.Desktop.appx" -OutFile $output2 -UseBasicParsing
+    Invoke-WebRequest -Uri "https://aka.ms/$path86" -OutFile $output2 -UseBasicParsing
 }
-Add-AppxPackage -Path $output2
-Add-AppxPackage -Path $output
+
+#check if packages are already installed
+Function getPackagesVersion ($outputx) {
+    $FileVersion = (Get-ItemProperty -Path $outputx ).VersionInfo.ProductVersion
+    $HighestInstalledVersion = Get-AppxPackage -Name Microsoft.VCLibs* |
+        Sort-Object -Property Version |
+        Select-Object -ExpandProperty Version -Last 1
+    
+    if ($HighestInstalledVersion -eq "") {
+        Add-AppPackage -path $outputx
+        Write-Host "$outputx installed"
+    } else {
+        if ($HighestInstalledVersion -lt $FileVersion ) {
+            Add-AppxPackage -Path $outputx
+        } else {
+            Write-Host "$outputx is updated `n"
+        }
+    }
+}
+
+getPackagesVersion ($output2)
+getPackagesVersion ($output)
 
 ##Utilities Install (code in progress for office options)
 #uni-variables
@@ -59,7 +83,7 @@ function businessOption {
         until (1..2 -contains $suppCountBusiness) 
 }
 
-#sub-menÃ¹ for Office option
+#sub-menù for Office option
 function subOfficeChoise {
     do {
         Write-Host "quale Office vuoi installare?"
@@ -75,7 +99,7 @@ function subOfficeChoise {
    until (0..4 -contains $officeType)
 }
 
-#main menÃ¹ for installation type
+#main menù for installation type
 do {
     Write-Host "scegliere il tipo di installazione in base al cliente:"
     Write-Host "1. Scuola `n2. Azienda `n3. Privato"
@@ -88,7 +112,7 @@ do {
 }
     until (1..3 -contains $menuresponse) 
 
-# main menÃ¹ for office type
+# main menù for office type
 do {
     Write-Host "vuoi installare anche un pacchetto office?"
     $menuresponseO = read-host "(Y/N)"
