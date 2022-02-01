@@ -69,7 +69,7 @@ getPackagesVersion ($output)
 $installationType
 $suppCountBusiness
 $menuresponse
-$officeType
+$officeType = -1
 $suppcountOffice
 $menuresponseO
 
