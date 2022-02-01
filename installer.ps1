@@ -15,7 +15,7 @@ Write-Output "Installazione automatizzata sistema M2"
 try { 
     New-PSDrive -Name "ReadyNAS 104 [NASGETGEAR]" -PSProvider "FileSystem" -Root "\\172.25.10.6\iso\Iso Microsoft"
 } catch {
-    "rete già mappata"
+    "rete giÃ  mappata"
 }
 
 #winget packages (still don't know how to check if they are already installed #damnit)
@@ -83,7 +83,7 @@ function businessOption {
         until (1..2 -contains $suppCountBusiness) 
 }
 
-#sub-menù for Office option
+#sub-menï¿½ for Office option
 function subOfficeChoise {
     do {
         Write-Host "quale Office vuoi installare?"
@@ -99,7 +99,7 @@ function subOfficeChoise {
    until (0..4 -contains $officeType)
 }
 
-#main menù for installation type
+#main menï¿½ for installation type
 do {
     Write-Host "scegliere il tipo di installazione in base al cliente:"
     Write-Host "1. Scuola `n2. Azienda `n3. Privato"
@@ -112,7 +112,7 @@ do {
 }
     until (1..3 -contains $menuresponse) 
 
-# main menù for office type
+# main menï¿½ for office type
 do {
     Write-Host "vuoi installare anche un pacchetto office?"
     $menuresponseO = read-host "(Y/N)"
