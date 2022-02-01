@@ -7,7 +7,6 @@ Function newLine($nLines) {
         write-host "`n"
         $count++
     }
-    
 }
 
 #admin req
