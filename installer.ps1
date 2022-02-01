@@ -94,10 +94,10 @@ function subOfficeChoise {
        Write-Host "1. Office 2016 VL 64bit `n2. Office 2016 Home & Business 32bit `n3. Office 2019 std-Professional VL `n4. Office 2019 proPlus retail " 
         $menuresponseSO =Read-Host [inserisci scelta]
        switch ($menuresponseSO) {
-           1 { $officeType = 1 }
-           2 { $officeType = 2 }
-           3 { $officeType = 3 }
-           4 { $officeType = 4 }
+           1 { $officeType = 0 }
+           2 { $officeType = 1 }
+           3 { $officeType = 2 }
+           4 { $officeType = 3 }
        }
    }
    until (0..4 -contains $officeType)
@@ -162,19 +162,8 @@ else {
 
 #office installation paths
 $mainPath = @("\\172.25.10.6\iso\Iso Microsoft")
-$officePath = @('Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe','Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe','Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe')
-$count = 0
-$officeToInstall = ""
-
-Foreach ($i in $officePath) {
-    if ($count -eq $officeType) {
-        $officeToInstall = $i
-    }
-    else {
-        $count++
-    }
-}
-
+$officePath = @("Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe","Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe","Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe")
+$officeToInstall = $officePath[$officeType]
 start-process -FilePath "$mainPath\$officeToInstall"
 
 #windows update (autoreboot may not work, damn it)
