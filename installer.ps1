@@ -87,7 +87,7 @@ function businessOption {
         until (1..2 -contains $suppCountBusiness) 
 }
 
-#sub-men� for Office option
+#sub-menù for Office option
 function subOfficeChoise {
     do {
         Write-Host "quale Office vuoi installare?"
@@ -161,7 +161,7 @@ else {
 }
 
 #office installation paths
-$mainPath =  @("\\172.25.10.6\iso\Iso Microsoft")
+#if your destination is different from the £rootPath make another variable -> $mainPath = "yourpath"
 $officePath = @("Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe2","Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe","Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe")
 $type = 0
 $officeToInstall
@@ -173,7 +173,7 @@ Foreach ($type in $officePath) {
         $type++
     }
 }
-start-process -FilePath "$mainpath\$officeToInstall" -Wait 
+start-process -FilePath "$rootPath\$officeToInstall" -Wait 
 
 #windows update (autoreboot may not work, damn it)
 Find-PackageProvider -Name "NuGet" -AllVersions
