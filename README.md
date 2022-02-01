@@ -1,7 +1,5 @@
 # Installer-x
 
-ATTENZIONE: la versione Alfa è ora in Beta e può essere utilizzata. 
-
 SELEZIONI:
 1) Selezionando l'installazione per "Scuola" verrà effettuata un'installazione base che prevede Utilities e Windows Updates (3 cicli, autoreboot)
 2) Selezionando l'installazione per "Azienda" oltre all'installazione base verrà chiesto se si vogliono impostare i criteri di gruppo relativi a Windows Update 
