@@ -69,8 +69,9 @@ getPackagesVersion ($output)
 $installationType
 $suppCountBusiness
 $menuresponse
-$officeType = -1
-$suppcountOffice
+$officeType
+$suppcountOffice2
+
 $menuresponseO
 
 #RK choise
@@ -88,19 +89,15 @@ function businessOption {
 }
 
 #sub-menù for Office option
-function subOfficeChoise {
+function subOfficeChoise  {
+    $suppOfficeType
     do {
         Write-Host "quale Office vuoi installare?"
        Write-Host "1. Office 2016 VL 64bit `n2. Office 2016 Home & Business 32bit `n3. Office 2019 std-Professional VL `n4. Office 2019 proPlus retail " 
-        $menuresponseSO =Read-Host [inserisci scelta]
-       switch ($menuresponseSO) {
-           1 { $officeType = 0 }
-           2 { $officeType = 1 }
-           3 { $officeType = 2 }
-           4 { $officeType = 3 }
-       }
+        $suppOfficeType =Read-Host [inserisci scelta]
    }
-   until (0..4 -contains $officeType)
+   until (1..4 -contains $suppOfficeType)
+   return $suppOfficeType
 }
 
 #main men� for installation type
@@ -116,12 +113,20 @@ do {
 }
     until (1..3 -contains $menuresponse) 
 
-# main men� for office type
+# main menù for office type
 do {
     Write-Host "vuoi installare anche un pacchetto office?"
     $menuresponseO = read-host "(Y/N)"
     Switch ($menuresponseO) {
-        "Y" { subOfficeChoise; $suppcountOffice = 1}
+        "Y" { 
+            $officeType = subOfficeChoise
+            switch ($officeType) {
+                1 { $officeType = 0 }
+                2 { $officeType = 1 }
+                3 { $officeType = 2 }
+                4 { $officeType = 3 }
+            }
+            $suppcountOffice = 1}
         "N" {$suppCountOffice = 0}
     }  
 }
