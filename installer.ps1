@@ -20,18 +20,18 @@ if ( [System.Environment]::OSVersion.Version.Build -lt 18363 ) {
     "ATTENZIONE: Per usare lo script e' necessario aggiornare almeno a Windows 10 versione 1909 ..."; Start-Sleep -s 5; Exit
 }
 
-Write-Output "Installazione automatizzata sistema M2"
+Write-Output "Automatic Installation - Personalize it"
  
 newLine(3)
 
 #net temporary mapping
-$device = "ReadyNAS 104 [NASGETGEAR]"
-$rootPath = "\\172.25.10.6\iso\Iso Microsoft"
+$device = "device to find"
+$rootPath = "IP+cd"
 
 try { 
     New-PSDrive -Name $device -PSProvider "FileSystem" -Root $rootPath
 } catch {
-    "$device già mappato"
+    "$device already mapped"
     newLine(1)
 }
 
@@ -91,7 +91,7 @@ $menuresponseO
 function businessOption {
     do {
         newLine(1)
-        Write-Host "Vuoi Impostare i criteri di gruppo per Windows Update a canale semestrale e disattivare l'installazione degli aggiornamenti in preview? (N.B. selezionando <Y> verranno cambiati i valori delle chiavi di registro necessarie)"
+        Write-Host "do you want to set semi-annual channel and turn off build in preview?"
         $menuresponseB = read-host "(Y/N)"
             Switch ($menuresponseB) {
                 "Y" {WindowsUpdateKRMod; $suppCountBusiness = 1 }
@@ -106,7 +106,7 @@ function subOfficeChoise  {
     $suppOfficeType
     do {
         newLine(1)
-        Write-Host "quale Office vuoi installare?"
+        Write-Host "which office do you want to install?"
         Write-Host "1. Office 2016 VL 64bit `n2. Office 2016 Home & Business 32bit `n3. Office 2019 std-Professional VL `n4. Office 2019 proPlus retail " 
         $suppOfficeType =Read-Host [inserisci scelta]
    }
@@ -117,8 +117,8 @@ function subOfficeChoise  {
 #main menu for installation type
 do {
     newLine(1)
-    Write-Host "scegliere il tipo di installazione in base al cliente:"
-    Write-Host "1. Scuola `n2. Azienda `n3. Privato"
+    Write-Host "choise the type of installation by the customer:"
+    Write-Host "1. School `n2. Business `n3. Private"
     $menuresponse = read-host [Inserisci scelta]
     switch ($menuresponse) {
         1 { $installationType = 1 }
@@ -131,7 +131,7 @@ until (1..3 -contains $menuresponse)
 # main menu for office type
 do {
     newLine(1)
-    Write-Host "vuoi installare anche un pacchetto office?"
+    Write-Host "do you want to installa Office?"
     $menuresponseO = read-host "(Y/N)"
     Switch ($menuresponseO) {
         "Y" {
@@ -160,7 +160,7 @@ function WindowsUpdateKRMod {
     New-ItemProperty -Path $registryPath -Name "ManagePreviewBuildsPolicyValue" -Value 0 -PropertyType DWORD -Force;
 }
 
-#Utilitieswinget
+#Utilities winget
 newLine(1)
 $listOfUtilities = @("7zip.7zip","Google.Chrome","Oracle.JavaRuntimeEnvironment","Adobe.Acrobat.Reader.64-bit")
 $otionalUtilities = @("CLechasseur.PathCopyCopy","WinDirStat","Microsoft.dotNetFramework")
@@ -185,7 +185,7 @@ else {
 
 #office installation paths
 if($suppCountOffice -eq 1) {
-    $mainPath = @("\\172.25.10.6\iso\Iso Microsoft")
+    $mainPath = @("IP+cd path")
     $officePath = @("Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe","Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe","Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe")
     $officeToInstall = $officePath[$officeType]
     start-process -FilePath "$mainPath\$officeToInstall"
@@ -205,4 +205,4 @@ Get-WindowsUpdate -Install -AcceptAll -RecurseCycle 2 -AutoReboot
 
 #end of the script, ty.
 
-#to suggest any change to the script just contact Matteo Cannoletta. :)
+#to suggest any change to the script just contact MattMatt19. :)
