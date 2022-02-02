@@ -17,7 +17,9 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 #system check
 if ( [System.Environment]::OSVersion.Version.Build -lt 18363 ) {
-    "ATTENZIONE: Per usare lo script e' necessario aggiornare almeno a Windows 10 versione 1909 ..."; Start-Sleep -s 5; Exit
+    "ATTENZIONE: you need to update to Windows 10 version 1909 at least ..."
+    Start-Sleep -s 5
+    Exit
 }
 
 Write-Output "Automatic Installation - Personalize it"
@@ -131,7 +133,7 @@ until (1..3 -contains $menuresponse)
 # main menu for office type
 do {
     newLine(1)
-    Write-Host "do you want to installa Office?"
+    Write-Host "do you want to install Office?"
     $menuresponseO = read-host "(Y/N)"
     Switch ($menuresponseO) {
         "Y" {
@@ -153,9 +155,11 @@ until (0..1 -contains $suppCountOffice)
 function WindowsUpdateKRMod {
     set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name BranchReadinessLevel -Value 32
     $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate";
-        if ( !(Test-Path $registryPath) ) { 
-            New-Item -Path $registryPath -Force
+
+    if ( !(Test-Path $registryPath) ) { 
+        New-Item -Path $registryPath -Force
     }
+
     New-ItemProperty -Path $registryPath -Name "ManagePreviewBuilds" -Value 1 -PropertyType DWORD -Force;
     New-ItemProperty -Path $registryPath -Name "ManagePreviewBuildsPolicyValue" -Value 0 -PropertyType DWORD -Force;
 }
@@ -163,23 +167,26 @@ function WindowsUpdateKRMod {
 #Utilities winget
 newLine(1)
 $listOfUtilities = @("7zip.7zip","Google.Chrome","Oracle.JavaRuntimeEnvironment","Adobe.Acrobat.Reader.64-bit")
-$otionalUtilities = @("CLechasseur.PathCopyCopy","WinDirStat","Microsoft.dotNetFramework")
+$businessUtilities = @("CLechasseur.PathCopyCopy","WinDirStat","Microsoft.dotNetFramework")
+$privatesUtilities = @("")
 $toInstall
 
-if ($installationType -eq 2)
-{
-    $toInstall = $listOfUtilities + $otionalUtilities
+if ($installationType -eq 2) {
+    $toInstall = $listOfUtilities + $businessUtilities
+}
+elseif ($installationType -eq 3 ) {
+    $toInstall = $listOfUtilities + $privatesUtilities
 }
 else {
     $toInstall = $listOfUtilities
 }
 
 foreach ($utility in $toInstall) {
-if (winget list --Id $utility) {
-    Write-Host "$utility already installed";
+    if (winget list --Id $utility) {
+        Write-Host "$utility already installed";
     } 
-else {
-    winget install -e --id $utility
+    else {
+        winget install -e --id $utility
     }
 }
 
@@ -194,12 +201,14 @@ if($suppCountOffice -eq 1) {
 #windows update (autoreboot may not work, damn it)
 Find-PackageProvider -Name "NuGet" -AllVersions
 Install-PackageProvider -Name "NuGet" -MinimumVersion 2.8.5.201 -Force;
+
 if (Get-Module -ListAvailable -Name PSWindowsUpdate) {
     Write-Host "PSWindowsUpdate Module already installed"
 }
 else {
     Install-Module PSWindowsUpdate -Force
 }
+
 Import-Module PSWindowsUpdate
 Get-WindowsUpdate -Install -AcceptAll -RecurseCycle 2 -AutoReboot
 
