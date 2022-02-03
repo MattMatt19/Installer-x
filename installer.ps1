@@ -192,7 +192,7 @@ foreach ($utility in $toInstall) {
 
 #office installation paths
 if($suppCountOffice -eq 1) {
-    $mainPath = @("IP+cd path")
+    $mainPath = @("\\ip\path")
     $officePath = @("Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe","Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe","Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe")
     $officeToInstall = $officePath[$officeType]
     start-process -FilePath "$mainPath\$officeToInstall"
