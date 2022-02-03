@@ -37,7 +37,7 @@ try {
     newLine(1)
 }
 
-#winget packages (still don't know how to check if they are already installed #damnit)
+#winget packages (still don't know how to check if they are already installed before the invoke-webReq #damnit)
 $output=".\DesktopAppInstaller.appxbundle"
 $output2=".\VCLibs.appx"
 $json=Invoke-WebRequest 'https://api.github.com/repos/microsoft/winget-cli/releases/latest' -UseBasicParsing
@@ -191,14 +191,14 @@ foreach ($utility in $toInstall) {
 }
 
 #office installation paths
-if($suppCountOffice -eq 1) {
+if ($suppCountOffice -eq 1) {
     $mainPath = @("\\ip\path")
     $officePath = @("Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe","Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe","Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe")
     $officeToInstall = $officePath[$officeType]
     start-process -FilePath "$mainPath\$officeToInstall"
 }
 
-#windows update (autoreboot may not work, damn it)
+#windows update (autoreboot may not work, #damnit)
 Find-PackageProvider -Name "NuGet" -AllVersions
 Install-PackageProvider -Name "NuGet" -MinimumVersion 2.8.5.201 -Force;
 
