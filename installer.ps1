@@ -28,7 +28,7 @@ newLine(3)
 
 #net temporary mapping
 $device = "device to find"
-$rootPath = "IP+cd"
+$rootPath = "\\ip\path"
 
 try { 
     New-PSDrive -Name $device -PSProvider "FileSystem" -Root $rootPath
