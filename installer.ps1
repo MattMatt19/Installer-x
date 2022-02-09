@@ -1,13 +1,7 @@
 # Installer-x for quick and automatic utilities installation and Windows Updates
 
-
-Function printNewLine($nLines) {
-    $count = 0
-    while ( $count -lt $nLines) {
-        write-host "`n"
-        $count++
-    }
-}
+# Dot source functions file (evil)
+.\functions.ps1
 
 # Check admin req
 If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
@@ -23,10 +17,9 @@ if ( [System.Environment]::OSVersion.Version.Build -lt 18363 ) {
 }
 
 Write-Output "Automatic Installation - Personalize it"
- 
 printNewLine(3)
 
-#net temporary mapping
+# net temporary mapping
 $device = "device to find"
 $rootPath = "\\ip\path"
 
@@ -36,7 +29,8 @@ try {
     "$device already mapped"
 }
 
-#winget packages (still don't know how to check if they are already installed before the invoke-webReq #damnit)
+# winget packages
+# FIXME: check if packages are already installed before invoking the web request
 $DesktopAppPath = ".\DesktopAppInstaller.appxbundle"
 $wingetRelease = Invoke-WebRequest 'https://api.github.com/repos/microsoft/winget-cli/releases/latest' -UseBasicParsing
 $wingetVersion = (ConvertFrom-Json $wingetRelease).tag_name
@@ -56,76 +50,35 @@ else {
 addPackages($VCLibsAppPath) 
 
 
-# Add Package (or PackageX??) listed in $packages, checking if packages are already installed
-Function addPackages($packages) {
-    $FileVersion = (Get-ItemProperty -Path $packages ).VersionInfo.ProductVersion
-    $HighestInstalledVersion = Get-AppxPackage -Name Microsoft.VCLibs* | Sort-Object -Property Version | Select-Object -ExpandProperty Version -Last 1
-    
-    if ($HighestInstalledVersion -eq "") {
-        Add-AppPackage -path $packages
-        Write-Host "$packages installed"
-    } else {
-        if ($HighestInstalledVersion -lt $FileVersion ) {
-            Add-AppxPackage -Path $packages
-        } else {
-            printNewLine(1)
-            Write-Host "$packages is updated"
-        }
-    }
-}
-
-
 ##Utilities Install (code in progress for office options)
 #uni-variables
-$installationType
+$deployType
 $suppCountBusiness
 $menuresponse
 $officeType
 $suppcountOffice2
 $menuresponseO
 
-function chooseWindowsUpdateChannel {
-    do {
-        printNewLine(1)
-        Write-Host "Do you want to use Windows Updates semi-annual channel and turn off Preview releases?"
-        $menuresponseB = read-host "(Y/N)"
-            Switch ($menuresponseB) {
-                "Y" {SetWindowsUpdateChannel; $suppCountBusiness = 1 }
-                "N" {$suppCountBusiness = 2}
-            }
-    } 
-    until (1..2 -contains $suppCountBusiness) 
-}
-
-#sub-menù for Office option
-function chooseOfficeReleaseName {
-    $officeRelease
-    do {
-        printNewLine(1)
-        Write-Host "Select the Office release to be installed:" +
-            "1. Office 2016 VL 64bit `n" +
-            "2. Office 2016 Home & Business 32bit `n" +
-            "3. Office 2019 std-Professional VL `n" +
-            "4. Office 2019 proPlus retail" 
-        $officeRelease = Read-Host [inserisci scelta]
-    } until (1..4 -contains $officeRelease)
-    
-    return $officeRelease
-}
 
 ########### Program Start
 
 #main menu for installation type
+enum InstallationType {
+    school = 1
+    business = 2
+    private = 3
+}   
+
 do {
     printNewLine(1)
     Write-Host "Choose installation Type :" +
         "1. School `n" +
         "2. Business `n" +
         "3. Private"
-    $installationType = read-host [Inserisci scelta]    
-} until (1..3 -contains $installationType) 
+    [InstallationType]$deployType = read-host [Inserisci scelta]    
+} until (1..3 -contains $deployType)
 
-if ($installationType == 2) {
+if ($deployType == [InstallationType]::Business) {
     chooseWindowsUpdateChannel;
 }
 
@@ -151,54 +104,46 @@ do {
 }
 until (0..1 -contains $suppCountOffice)
 
-## semi-annual channel and disable preview build WU (Registry path mod)
-function SetWindowsUpdateChannel {
-    set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name BranchReadinessLevel -Value 32
-    $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate";
-
-    if ( !(Test-Path $registryPath) ) { 
-        New-Item -Path $registryPath -Force
-    }
-
-    New-ItemProperty -Path $registryPath -Name "ManagePreviewBuilds" -Value 1 -PropertyType DWORD -Force;
-    New-ItemProperty -Path $registryPath -Name "ManagePreviewBuildsPolicyValue" -Value 0 -PropertyType DWORD -Force;
-}
 
 #Utilities winget
 printNewLine(1)
-$basicUtilities = @("7zip.7zip","Google.Chrome","Oracle.JavaRuntimeEnvironment","Adobe.Acrobat.Reader.64-bit")
+$utilities = @("7zip.7zip","Google.Chrome","Oracle.JavaRuntimeEnvironment","Adobe.Acrobat.Reader.64-bit")
 $businessUtilities = @("CLechasseur.PathCopyCopy","WinDirStat","Microsoft.dotNetFramework")
 $privatesUtilities = @("")
 
 $utilities
 
 # Select utilities 
-$utilities = $basicUtilities
-if ($installationType -eq 2) {
-    $utilities = $basicUtilities + $businessUtilities
+if ($deployType -eq 2) {
+    $utilities += $businessUtilities
 }
-elseif ($installationType -eq 3 ) {
-    $utilities = $basicUtilities + $privatesUtilities
+elseif ($deployType -eq 3 ) {
+    $utilities += $privatesUtilities
 }
 
 foreach ($utility in $utilities) {
     if (winget list --Id $utility) {
         Write-Host "$utility already installed";
-    } 
-    else {
+    } else {
         winget install -e --id $utility
     }
 }
 
 # office installation paths
+# FIXME: Static Path specific
 if ($suppCountOffice -eq 1) {
     $mainPath = @("\\ip\path")
-    $officePath = @("Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe","Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe","Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe")
+    $officePath = @(
+        "Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe",
+        "Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe",
+        "Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe")
     $officeToInstall = $officePath[$officeType]
     start-process -FilePath "$mainPath\$officeToInstall"
 }
 
-#windows update (autoreboot may not work, #damnit)
+# Get windows updates
+# FIXME: AutoReboot doesn't work
+# FIXME: Declare version strings elsewhere
 Find-PackageProvider -Name "NuGet" -AllVersions
 Install-PackageProvider -Name "NuGet" -MinimumVersion 2.8.5.201 -Force;
 
@@ -212,6 +157,6 @@ else {
 Import-Module PSWindowsUpdate
 Get-WindowsUpdate -Install -AcceptAll -RecurseCycle 2 -AutoReboot
 
-#end of the script, ty.
+###end of the script, ty.
 
-#to suggest any change to the script just contact MattMatt19. :)
+# PR welcome.
