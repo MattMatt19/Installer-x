@@ -1,6 +1,6 @@
-##Installer-x for quick and automatic utilities installation and Windows Updates
+# Installer-x for quick and automatic utilities installation and Windows Updates
 
-#just a new line
+
 Function newLine($nLines) {
     $count = 0
     while ( $count -lt $nLines) {
@@ -17,7 +17,7 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 #system check
 if ( [System.Environment]::OSVersion.Version.Build -lt 18363 ) {
-    "ATTENZIONE: you need to update to Windows 10 version 1909 at least ..."
+    "Warning: you need to update to Windows 10 version 1909 at least ..."
     Start-Sleep -s 5
     Exit
 }
@@ -38,12 +38,16 @@ try {
 }
 
 #winget packages (still don't know how to check if they are already installed before the invoke-webReq #damnit)
-$output=".\DesktopAppInstaller.appxbundle"
-$output2=".\VCLibs.appx"
-$json=Invoke-WebRequest 'https://api.github.com/repos/microsoft/winget-cli/releases/latest' -UseBasicParsing
-$psobj = ConvertFrom-Json $json
-$version=$psobj.tag_name
-Invoke-WebRequest -Uri "https://github.com/microsoft/winget-cli/releases/download/$version/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -OutFile $output -UseBasicParsing
+$DesktopAppPath = ".\DesktopAppInstaller.appxbundle"
+$VCLibsAppPath  = ".\VCLibs.appx"
+
+$wingetRelease =Invoke-WebRequest 'https://api.github.com/repos/microsoft/winget-cli/releases/latest' -UseBasicParsing
+$wingetVersion = (ConvertFrom-Json $wingetRelease).tag_name
+$DesktopAppInstallerUri = "https://github.com/microsoft/winget-cli/releases/download/$wingetVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" 
+Invoke-WebRequest -Uri $DesktopAppInstallerUri -UseBasicParsing -OutFile $DesktopAppPath 
+
+addPackages($DesktopAppPath)
+
 $env:PROCESSOR_ARCHITECTURE
 
 #variables for checking if package are already downloaded
@@ -51,34 +55,33 @@ $path64 = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
 $path86 = "Microsoft.VCLibs.x86.14.00.Desktop.appx"
 
 if ([Environment]::Is64BitOperatingSystem) {
-    Invoke-WebRequest -Uri "https://aka.ms/$path64" -OutFile $output2 -UseBasicParsing
+    Invoke-WebRequest -Uri "https://aka.ms/$path64" -OutFile $VCLibsAppPath -UseBasicParsing
 }
 else {
-    Invoke-WebRequest -Uri "https://aka.ms/$path86" -OutFile $output2 -UseBasicParsing
+    Invoke-WebRequest -Uri "https://aka.ms/$path86" -OutFile $VCLibsAppPath -UseBasicParsing
 }
 
-#check if packages are already installed
-Function getPackagesVersion ($outputx) {
-    $FileVersion = (Get-ItemProperty -Path $outputx ).VersionInfo.ProductVersion
-    $HighestInstalledVersion = Get-AppxPackage -Name Microsoft.VCLibs* |
-        Sort-Object -Property Version |
-        Select-Object -ExpandProperty Version -Last 1
+
+# Add Package (or PackageX??) listed in $packages, checking if packages are already installed
+Function addPackages($packages) {
+    $FileVersion = (Get-ItemProperty -Path $packages ).VersionInfo.ProductVersion
+    $HighestInstalledVersion = Get-AppxPackage -Name Microsoft.VCLibs* | Sort-Object -Property Version | Select-Object -ExpandProperty Version -Last 1
     
     if ($HighestInstalledVersion -eq "") {
-        Add-AppPackage -path $outputx
-        Write-Host "$outputx installed"
+        Add-AppPackage -path $packages
+        Write-Host "$packages installed"
     } else {
         if ($HighestInstalledVersion -lt $FileVersion ) {
-            Add-AppxPackage -Path $outputx
+            Add-AppxPackage -Path $packages
         } else {
             newLine(1)
-            Write-Host "$outputx is updated"
+            Write-Host "$packages is updated"
         }
     }
 }
 
-getPackagesVersion ($output2)
-getPackagesVersion ($output)
+addPackages($VCLibsAppPath) 
+
 
 ##Utilities Install (code in progress for office options)
 #uni-variables
@@ -89,11 +92,10 @@ $officeType
 $suppcountOffice2
 $menuresponseO
 
-#RK choise
-function businessOption {
+function setWindowsUpdateChannel {
     do {
         newLine(1)
-        Write-Host "do you want to set semi-annual channel and turn off build in preview?"
+        Write-Host "do you want to set semi-annual channel and turn off preview releases?"
         $menuresponseB = read-host "(Y/N)"
             Switch ($menuresponseB) {
                 "Y" {WindowsUpdateKRMod; $suppCountBusiness = 1 }
@@ -104,7 +106,7 @@ function businessOption {
 }
 
 #sub-menù for Office option
-function subOfficeChoise  {
+function subOfficeChoice  {
     $suppOfficeType
     do {
         newLine(1)
@@ -124,7 +126,8 @@ do {
     $menuresponse = read-host [Inserisci scelta]
     switch ($menuresponse) {
         1 { $installationType = 1 }
-        2 { businessOption; $installationType = 2}
+        2 { setWindows
+        UpdateChannel; $installationType = 2}
         3 { $installationType = 3 }       
     }
 }
@@ -137,7 +140,7 @@ do {
     $menuresponseO = read-host "(Y/N)"
     Switch ($menuresponseO) {
         "Y" {
-            $officeType = subOfficeChoise
+            $officeType = subOfficeChoice
             switch ($officeType) {
                 1 { $officeType = 0 }
                 2 { $officeType = 1 }
