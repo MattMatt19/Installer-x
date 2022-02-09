@@ -1,7 +1,7 @@
 # Installer-x for quick and automatic utilities installation and Windows Updates
 
 
-Function newLine($nLines) {
+Function printNewLine($nLines) {
     $count = 0
     while ( $count -lt $nLines) {
         write-host "`n"
@@ -9,13 +9,13 @@ Function newLine($nLines) {
     }
 }
 
-#admin req
+# Check admin req
 If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
 	Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -Verb RunAs
 	Exit
 }
 
-#system check
+# Check OS Version
 if ( [System.Environment]::OSVersion.Version.Build -lt 18363 ) {
     "Warning: you need to update to Windows 10 version 1909 at least ..."
     Start-Sleep -s 5
@@ -24,7 +24,7 @@ if ( [System.Environment]::OSVersion.Version.Build -lt 18363 ) {
 
 Write-Output "Automatic Installation - Personalize it"
  
-newLine(3)
+printNewLine(3)
 
 #net temporary mapping
 $device = "device to find"
@@ -34,32 +34,26 @@ try {
     New-PSDrive -Name $device -PSProvider "FileSystem" -Root $rootPath
 } catch {
     "$device already mapped"
-    newLine(1)
 }
 
 #winget packages (still don't know how to check if they are already installed before the invoke-webReq #damnit)
 $DesktopAppPath = ".\DesktopAppInstaller.appxbundle"
-$VCLibsAppPath  = ".\VCLibs.appx"
-
-$wingetRelease =Invoke-WebRequest 'https://api.github.com/repos/microsoft/winget-cli/releases/latest' -UseBasicParsing
+$wingetRelease = Invoke-WebRequest 'https://api.github.com/repos/microsoft/winget-cli/releases/latest' -UseBasicParsing
 $wingetVersion = (ConvertFrom-Json $wingetRelease).tag_name
 $DesktopAppInstallerUri = "https://github.com/microsoft/winget-cli/releases/download/$wingetVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" 
 Invoke-WebRequest -Uri $DesktopAppInstallerUri -UseBasicParsing -OutFile $DesktopAppPath 
-
 addPackages($DesktopAppPath)
 
+
+$VCLibsAppPath  = ".\VCLibs.appx"
 $env:PROCESSOR_ARCHITECTURE
-
-#variables for checking if package are already downloaded
-$path64 = "Microsoft.VCLibs.x64.14.00.Desktop.appx"
-$path86 = "Microsoft.VCLibs.x86.14.00.Desktop.appx"
-
 if ([Environment]::Is64BitOperatingSystem) {
-    Invoke-WebRequest -Uri "https://aka.ms/$path64" -OutFile $VCLibsAppPath -UseBasicParsing
+    Invoke-WebRequest -Uri "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx" -OutFile $VCLibsAppPath -UseBasicParsing
 }
 else {
-    Invoke-WebRequest -Uri "https://aka.ms/$path86" -OutFile $VCLibsAppPath -UseBasicParsing
+    Invoke-WebRequest -Uri "https://aka.ms/Microsoft.VCLibs.x86.14.00.Desktop.appx" -OutFile $VCLibsAppPath -UseBasicParsing
 }
+addPackages($VCLibsAppPath) 
 
 
 # Add Package (or PackageX??) listed in $packages, checking if packages are already installed
@@ -74,13 +68,11 @@ Function addPackages($packages) {
         if ($HighestInstalledVersion -lt $FileVersion ) {
             Add-AppxPackage -Path $packages
         } else {
-            newLine(1)
+            printNewLine(1)
             Write-Host "$packages is updated"
         }
     }
 }
-
-addPackages($VCLibsAppPath) 
 
 
 ##Utilities Install (code in progress for office options)
@@ -92,13 +84,13 @@ $officeType
 $suppcountOffice2
 $menuresponseO
 
-function setWindowsUpdateChannel {
+function chooseWindowsUpdateChannel {
     do {
-        newLine(1)
-        Write-Host "do you want to set semi-annual channel and turn off preview releases?"
+        printNewLine(1)
+        Write-Host "Do you want to use Windows Updates semi-annual channel and turn off Preview releases?"
         $menuresponseB = read-host "(Y/N)"
             Switch ($menuresponseB) {
-                "Y" {WindowsUpdateKRMod; $suppCountBusiness = 1 }
+                "Y" {SetWindowsUpdateChannel; $suppCountBusiness = 1 }
                 "N" {$suppCountBusiness = 2}
             }
     } 
@@ -106,41 +98,46 @@ function setWindowsUpdateChannel {
 }
 
 #sub-menù for Office option
-function subOfficeChoice  {
-    $suppOfficeType
+function chooseOfficeReleaseName {
+    $officeRelease
     do {
-        newLine(1)
-        Write-Host "which office do you want to install?"
-        Write-Host "1. Office 2016 VL 64bit `n2. Office 2016 Home & Business 32bit `n3. Office 2019 std-Professional VL `n4. Office 2019 proPlus retail " 
-        $suppOfficeType =Read-Host [inserisci scelta]
-   }
-    until (1..4 -contains $suppOfficeType)
-    return $suppOfficeType
+        printNewLine(1)
+        Write-Host "Select the Office release to be installed:" +
+            "1. Office 2016 VL 64bit `n" +
+            "2. Office 2016 Home & Business 32bit `n" +
+            "3. Office 2019 std-Professional VL `n" +
+            "4. Office 2019 proPlus retail" 
+        $officeRelease = Read-Host [inserisci scelta]
+    } until (1..4 -contains $officeRelease)
+    
+    return $officeRelease
 }
+
+########### Program Start
 
 #main menu for installation type
 do {
-    newLine(1)
-    Write-Host "choise the type of installation by the customer:"
-    Write-Host "1. School `n2. Business `n3. Private"
-    $menuresponse = read-host [Inserisci scelta]
-    switch ($menuresponse) {
-        1 { $installationType = 1 }
-        2 { setWindows
-        UpdateChannel; $installationType = 2}
-        3 { $installationType = 3 }       
-    }
+    printNewLine(1)
+    Write-Host "Choose installation Type :" +
+        "1. School `n" +
+        "2. Business `n" +
+        "3. Private"
+    $installationType = read-host [Inserisci scelta]    
+} until (1..3 -contains $installationType) 
+
+if ($installationType == 2) {
+    chooseWindowsUpdateChannel;
 }
-until (1..3 -contains $menuresponse) 
+
 
 # main menu for office type
 do {
-    newLine(1)
+    printNewLine(1)
     Write-Host "do you want to install Office?"
     $menuresponseO = read-host "(Y/N)"
     Switch ($menuresponseO) {
         "Y" {
-            $officeType = subOfficeChoice
+            $officeType = chooseOfficeReleaseName
             switch ($officeType) {
                 1 { $officeType = 0 }
                 2 { $officeType = 1 }
@@ -154,8 +151,8 @@ do {
 }
 until (0..1 -contains $suppCountOffice)
 
-##semi-annual channel and disable preview build WU (Registry path mod)
-function WindowsUpdateKRMod {
+## semi-annual channel and disable preview build WU (Registry path mod)
+function SetWindowsUpdateChannel {
     set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name BranchReadinessLevel -Value 32
     $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate";
 
@@ -168,23 +165,23 @@ function WindowsUpdateKRMod {
 }
 
 #Utilities winget
-newLine(1)
-$listOfUtilities = @("7zip.7zip","Google.Chrome","Oracle.JavaRuntimeEnvironment","Adobe.Acrobat.Reader.64-bit")
+printNewLine(1)
+$basicUtilities = @("7zip.7zip","Google.Chrome","Oracle.JavaRuntimeEnvironment","Adobe.Acrobat.Reader.64-bit")
 $businessUtilities = @("CLechasseur.PathCopyCopy","WinDirStat","Microsoft.dotNetFramework")
 $privatesUtilities = @("")
-$toInstall
 
+$utilities
+
+# Select utilities 
+$utilities = $basicUtilities
 if ($installationType -eq 2) {
-    $toInstall = $listOfUtilities + $businessUtilities
+    $utilities = $basicUtilities + $businessUtilities
 }
 elseif ($installationType -eq 3 ) {
-    $toInstall = $listOfUtilities + $privatesUtilities
-}
-else {
-    $toInstall = $listOfUtilities
+    $utilities = $basicUtilities + $privatesUtilities
 }
 
-foreach ($utility in $toInstall) {
+foreach ($utility in $utilities) {
     if (winget list --Id $utility) {
         Write-Host "$utility already installed";
     } 
@@ -193,7 +190,7 @@ foreach ($utility in $toInstall) {
     }
 }
 
-#office installation paths
+# office installation paths
 if ($suppCountOffice -eq 1) {
     $mainPath = @("\\ip\path")
     $officePath = @("Office 2016\Office_2016_64Bit_STD_VolumeLicensing\setup.exe","Office 2016\Home & Businnes Retail x86 x64\HomeBusinessRetail 2016 x86 x64\setup.exe","Office 2019\OfficeProPlus2019ESD\retail\ProPlus2019RetailItalian1\Setup.exe")
