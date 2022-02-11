@@ -16,7 +16,7 @@ if ( [System.Environment]::OSVersion.Version.Build -lt 18363 ) {
     Exit
 }
 
-Write-Output "Automatic Installation - Personalize it"
+Write-Output "### Automatic Installation - Personalize it"
 printNewLine(3)
 
 # net temporary mapping
@@ -50,7 +50,7 @@ else {
 addPackages($VCLibsAppPath) 
 
 
-##Utilities Install (code in progress for office options)
+## Utilities Install (WIP)
 #uni-variables
 $deployType
 $suppCountBusiness
@@ -84,6 +84,7 @@ if ($deployType == [InstallationType]::Business) {
 
 
 # main menu for office type
+# FIXME: Use enums
 do {
     printNewLine(1)
     Write-Host "do you want to install Office?"
@@ -99,10 +100,10 @@ do {
             }
             $suppcountOffice = 1
         }
+        
         "N" {$suppCountOffice = 0}
     }  
-}
-until (0..1 -contains $suppCountOffice)
+} until (0..1 -contains $suppCountOffice)
 
 
 #Utilities winget
@@ -110,7 +111,6 @@ printNewLine(1)
 $utilities = @("7zip.7zip","Google.Chrome","Oracle.JavaRuntimeEnvironment","Adobe.Acrobat.Reader.64-bit")
 $businessUtilities = @("CLechasseur.PathCopyCopy","WinDirStat","Microsoft.dotNetFramework")
 $privatesUtilities = @("")
-
 $utilities
 
 # Select utilities 
